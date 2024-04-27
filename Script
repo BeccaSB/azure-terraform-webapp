@@ -1,0 +1,40 @@
+# main.tf
+
+# Provider Configuration
+provider "azurerm" {
+  features {} # Enable all provider features
+}
+
+# Resource Definitions
+
+# Define an Azure Resource Group to group related resources
+resource "azurerm_resource_group" "webapp_rg" {
+  name     = "my-webapp-rg"      # Name of the resource group
+  location = "West Europe"        # Location for the resource group
+}
+
+# Define an Azure App Service Plan for hosting the web application
+resource "azurerm_app_service_plan" "webapp_plan" {
+  name                = "my-webapp-plan"                                     # Name of the App Service Plan
+  location            = azurerm_resource_group.webapp_rg.location            # Location same as the resource group
+  resource_group_name = azurerm_resource_group.webapp_rg.name                # Resource group name
+  kind                = "Linux"                                             # Linux-based App Service Plan
+  reserved            = true                                                # Reserved instance for better performance
+
+  sku {                               # Define the pricing tier and instance size
+    tier = "Basic"                    # Basic pricing tier
+    size = "B1"                       # Instance size
+  }
+}
+
+# Define an Azure App Service for hosting the web application
+resource "azurerm_app_service" "webapp" {
+  name                = "my-webapp"                                      # Name of the App Service
+  location            = azurerm_resource_group.webapp_rg.location         # Location same as the resource group
+  resource_group_name = azurerm_resource_group.webapp_rg.name             # Resource group name
+  app_service_plan_id = azurerm_app_service_plan.webapp_plan.id            # Reference to the App Service Plan
+
+  site_config {                                                           # Configure the web app settings
+    linux_fx_version = "DOCKER|your-docker-image:latest"                  # Docker container image configuration
+  }
+}
